@@ -16,12 +16,19 @@
       var g_maxVSpeed = 100;
       var g_thrustForce = -5;
       var g_gravity = 3;
+      var g_varianceBetweenTwoPathPoints = 5;
+      var g_heightPath = 400;
+      var g_minMarginPath = 20;
+      
+      var g_xPathIncrement = 15; // Pixels entre chaque point définissant le chemin de la veine.
+      var g_baseSpeed = -20;
       //END
       
       //VARIABLES GAMEPLAY
       var score;
       var player;
       var obstacles;
+      var bgPath;
       
       //INIT
       //states : 0 intro, 1 play
@@ -29,8 +36,8 @@
       
       var ballRunning = false;
     //and two-dimensional graphic context of the  
-    //canvas, the only one supported by all   
-    //browsers for now  
+    //canvas, the only one supported by all
+    //browsers for now
       
     c.width = width;
     c.height = height;
@@ -67,7 +74,11 @@ function virusClass(options)
   }
 }
 
-//function 
+function pointClass(options)
+{
+  this.x = options.x;
+  this.y = options.y;
+}
 
 function globuleClass(options)
 {
@@ -76,9 +87,47 @@ function globuleClass(options)
   this.width = 64;
 }
 
+var minPathY = g_heightPath /2 + g_minMarginPath;
+var maxPathY = height - g_heightPath/2 - g_minMarginPath;
+function pathClass()
+{
+  this.elements = new Array();
+  this.currentAngle = 0; // radians
+  
+  this.GenerateNewPoint = function(nextX)
+  {
+    var lastX = this.elements[this.elements.length-1].x;
+    var lastY = this.elements[this.elements.length-1].y;
+    var distToNextX = (nextX-lastX);
+    var nextY = (Math.sin(this.currentAngle) * distToNextX) + lastY;
+    var randY = (Math.random() * 2 - 1) * g_varianceBetweenTwoPathPoints;
+    nextY += randY;
+    nextY = Math.max(minPathY, nextY);
+    nextY = Math.min(maxPathY, nextY);
+    this.elements.push(new pointClass({x: nextX, y : nextY}));
+    var distance = DistFrom(lastX, lastY, nextX, nextY);
+    var asin = Math.asin((nextY - lastY) / distance);
+    this.currentAngle = asin;
+  }
+  
+  this.Update = function()
+  {
+    for(var i=0; i< this.elements.length; i++)
+    {
+      this.elements[i].x += GetGeneralSpeed();
+    }
+    
+    while(this.elements[0].x < -g_xPathIncrement)
+    {
+      this.elements.shift();
+      this.GenerateNewPoint(this.elements[this.elements.length-1].x + g_xPathIncrement);
+    }
+  }
+}
+
 var clear = function()
 {  
-  ctx.fillStyle = '#800000';  
+  ctx.fillStyle = '#800000';
 
 //clear whole surface  
   ctx.beginPath();  
@@ -95,13 +144,20 @@ var clear = function()
 
 function GetGeneralSpeed()
 {
-  return 20;
+  return g_baseSpeed;
 }
 
 function InitElts()
 {
   player = new virusClass({x:32, y:height/2});
   obstacles = new Array();
+  bgPath = new pathClass();
+  bgPath.elements.push(new pointClass({x: 0, y: height/2}));
+  var xPath;
+  for(xPath = g_xPathIncrement; xPath < width + g_xPathIncrement; xPath+= g_xPathIncrement)
+  {
+    bgPath.GenerateNewPoint(xPath);
+  }
 }
 
 function DistFrom(originX, originY, targetX, targetY)
@@ -146,13 +202,84 @@ $("#c").click(function(e)
   }
 });
 
+function GetBottomPathY(targetX)
+{
+  return GetPathY(targetX) + g_heightPath/2;
+}
+
+function GetTopPathY(targetX)
+{
+  return GetPathY(targetX) - g_heightPath/2;
+}
+
+function GetPathY(targetX)
+{
+  var found = false;
+  var i = 0;
+  previousElt = bgPath.elements[i];
+  i++;
+  while(i<bgPath.elements.length)
+  {
+    if(bgPath.elements[i].x > targetX)
+    {
+      return GetYFromXOnLineFormedByTwoPoints(targetX, previousElt.x, previousElt.y, bgPath.elements[i].x, bgPath.elements[i].y);
+    }
+    previousElt = bgPath.elements[i];
+    i++;
+  }
+  return -1;
+}
+
+// ATTENTION, originX < destX sinon ca foire
+// Thalès <3
+function GetYFromXOnLineFormedByTwoPoints(wantedX, originX, originY, destX, destY)
+{
+  var normedX = destX - originX;
+  var normedY = destY - originY;
+  var normedWantedX = wantedX - originX;
   
+  var normedResultY = (normedWantedX / normedX) * normedY;
+  return normedResultY + originY; 
+}
 
 function UpdateElements()
 {
   if(isMouseDown)
     player.Thrust();
   player.Update();
+  
+  bgPath.Update();
+  
+  //pour les 4 coins, on teste si les 2 coins du haut sont toujours sous la droite du haut,
+  //et les 2 coins du bas sont toujours au dessus de la droite du bas
+  var isCollide = false;
+  var topLeftPathY = GetTopPathY(player.x);
+  var topRightPathY = GetTopPathY(player.x + player.width);
+  var bottomLeftPathY = GetBottomPathY(player.x);
+  var bottomRightPathY = GetBottomPathY(player.x + player.width);
+  if(player.y < topLeftPathY)
+  {
+    isCollide = true;
+    player.y = topLeftPathY;
+  }
+  if(player.y < topRightPathY)
+  {
+    isCollide = true;
+    player.y = topRightPathY;
+  }
+  if(player.y + player.height > bottomLeftPathY)
+  {
+    isCollide = true;
+    player.y = bottomLeftPathY - player.height;
+  }
+  if(player.y + player.height > bottomRightPathY)
+  {
+    isCollide = true;
+    player.y = bottomRightPathY - player.height;
+  }
+  
+  if(isCollide)
+    player.verticalVelocity = 0;
   
   //collisions ici.
   if(player.y < 0)
@@ -169,9 +296,31 @@ function UpdateElements()
 
 function DrawAll()
 {
+  ctx.strokeStyle = "#FFF";
+  ctx.fillStyle = "#FFF";
+  ctx.beginPath();
+  ctx.moveTo(bgPath.elements[0].x, bgPath.elements[0].y - g_heightPath/2);
+  for(var i=1;i< bgPath.elements.length;i++)
+  {
+    ctx.lineTo(bgPath.elements[i].x, bgPath.elements[i].y - g_heightPath/2);
+    //ctx.fillRect(bgPath.elements[i].x, bgPath.elements[i].y, 8, 8);
+  }
+  ctx.stroke();
+  ctx.closePath();
+  ctx.beginPath();
+  ctx.moveTo(bgPath.elements[0].x, bgPath.elements[0].y + g_heightPath/2);
+  for(var i=1;i< bgPath.elements.length;i++)
+  {
+    ctx.lineTo(bgPath.elements[i].x, bgPath.elements[i].y + g_heightPath/2);
+    //ctx.fillRect(bgPath.elements[i].x, bgPath.elements[i].y, 8, 8);
+  }
+  ctx.stroke();
+  ctx.closePath();
+  
+  
   ctx.fillStyle = "#080";
   ctx.fillRect(player.x, player.y, player.width, player.height);
-/*  var i=0;
+  /*  var i=0;
   var destRotatedx;
   var destRotatedy;
   for(i=0;i<elements.length;i++)
