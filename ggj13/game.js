@@ -60,6 +60,7 @@ globuleImg.src = "img/globule.svg";
 var hbSon = new Audio();
 hbSon.src = "sound/hb.ogg";
 hbSon.load();
+hbSon.loop = false;
 
 
 function virusClass(options)
@@ -72,22 +73,26 @@ function virusClass(options)
   this.verticalVelocity = 0;
   this.Thrust = function()
   {
-    this.verticalVelocity += g_thrustForce;
+    if(this.isAlive)
+      this.verticalVelocity += g_thrustForce;
   }
   
   this.Update = function()
   {
-    this.verticalVelocity += g_gravity;
-    
-    if(this.verticalVelocity > g_maxVSpeed)
+    if(this.isAlive)
     {
-      this.verticalVelocity = g_maxVSpeed;
+      this.verticalVelocity += g_gravity;
+      
+      if(this.verticalVelocity > g_maxVSpeed)
+      {
+        this.verticalVelocity = g_maxVSpeed;
+      }
+      else if(this.verticalVelocity < -g_maxVSpeed)
+      {
+        this.verticalVelocity = -g_maxVSpeed;
+      }
+      this.y += this.verticalVelocity;
     }
-    else if(this.verticalVelocity < -g_maxVSpeed)
-    {
-      this.verticalVelocity = -g_maxVSpeed;
-    }
-    this.y += this.verticalVelocity;
   }
 }
 
@@ -106,9 +111,10 @@ function globuleClass(options)
 
 function AjoutGlobule(xGlobule){
   var middleY = GetPathY(xGlobule);
-  var topY = middleY - g_heightPath/2 - 32;
-  var bottomY = middleY + g_heightPath/2 + 32;
+  var topY = middleY - g_heightPath/2 + 32;
+  var bottomY = middleY + g_heightPath/2 - 32;
   var resultY = Math.random() * (bottomY - topY);
+  $("#debug").val(resultY);
   resultY += topY;
   obstacles.push(new globuleClass({x:xGlobule, y:resultY}));
 }
@@ -284,11 +290,8 @@ function GetYFromXOnLineFormedByTwoPoints(wantedX, originX, originY, destX, dest
 }
 
 function Fail(){
-      g_generalSpeed=0;
-}
-
-function Score(){
-  alert("biatch");
+  player.isAlive = false;
+  g_generalSpeed=0;
 }
 
 function UpdateElements()
@@ -307,7 +310,7 @@ function UpdateElements()
     currentBoucle = 0;
   
   //maj son
-  if(GetGeneralSpeed() == g_triggerSound)
+  if(GetGeneralSpeed() < g_triggerSound)
   {
     hbSon.play();
   }
@@ -391,7 +394,7 @@ function UpdateElements()
 function DrawAll()
 {
   ctx.strokeStyle = "#FFF";
-  ctx.fillStyle = "#FFF";
+  ctx.fillStyle = "#400";
   ctx.beginPath();
   ctx.moveTo(bgPath.elements[0].x, bgPath.elements[0].y - g_heightPath/2);
   for(var i=1;i< bgPath.elements.length;i++)
@@ -399,8 +402,11 @@ function DrawAll()
     ctx.lineTo(bgPath.elements[i].x, bgPath.elements[i].y - g_heightPath/2);
     //ctx.fillRect(bgPath.elements[i].x, bgPath.elements[i].y, 8, 8);
   }
-  ctx.stroke();
+  ctx.lineTo(width, 0);
+  ctx.lineTo(0,0);
   ctx.closePath();
+  ctx.fill();
+  //ctx.stroke();
   ctx.beginPath();
   ctx.moveTo(bgPath.elements[0].x, bgPath.elements[0].y + g_heightPath/2);
   for(var i=1;i< bgPath.elements.length;i++)
@@ -408,12 +414,47 @@ function DrawAll()
     ctx.lineTo(bgPath.elements[i].x, bgPath.elements[i].y + g_heightPath/2);
     //ctx.fillRect(bgPath.elements[i].x, bgPath.elements[i].y, 8, 8);
   }
-  ctx.stroke();
+  ctx.lineTo(width, height);
+  ctx.lineTo(0, height);
   ctx.closePath();
+  //ctx.stroke();
+  ctx.fill();
   
   
-
-
+  ctx.strokeStyle = "#666";
+  ctx.fillStyle = "#AAA";
+  ctx.beginPath();
+  ctx.moveTo(bgPath.elements[0].x, bgPath.elements[0].y - g_heightPath/2);
+  for(var i=1;i< bgPath.elements.length;i++)
+  {
+    ctx.lineTo(bgPath.elements[i].x, bgPath.elements[i].y - g_heightPath/2);
+    //ctx.fillRect(bgPath.elements[i].x, bgPath.elements[i].y, 8, 8);
+  }
+  for(var i=bgPath.elements.length-1;i>=0;i--)
+  {
+    ctx.lineTo(bgPath.elements[i].x, bgPath.elements[i].y - g_heightPath/2-8);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  
+  ctx.strokeStyle = "#666";
+  ctx.fillStyle = "#AAA";
+  ctx.beginPath();
+  ctx.moveTo(bgPath.elements[0].x, bgPath.elements[0].y + g_heightPath/2);
+  for(var i=1;i< bgPath.elements.length;i++)
+  {
+    ctx.lineTo(bgPath.elements[i].x, bgPath.elements[i].y + g_heightPath/2);
+    //ctx.fillRect(bgPath.elements[i].x, bgPath.elements[i].y, 8, 8);
+  }
+  for(var i=bgPath.elements.length-1;i>=0;i--)
+  {
+    ctx.lineTo(bgPath.elements[i].x, bgPath.elements[i].y + g_heightPath/2+8);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  
   ctx.fillStyle = "rgba(255,255,255, 0.5)";
   //ctx.drawImage(globuleImg, obstacles[0].x, obstacles[0].y);
   for(var i = 0; i<obstacles.length; i++){
