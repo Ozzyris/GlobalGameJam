@@ -32,8 +32,8 @@
     //canvas, the only one supported by all   
     //browsers for now  
       
-    c.width = width;  
-    c.height = height;  
+    c.width = width;
+    c.height = height;
     //setting canvas size
 var tutoImg = new Image();
 tutoImg.src = "img/tuto.png";
@@ -101,7 +101,7 @@ function GetGeneralSpeed()
 function InitElts()
 {
   player = new virusClass({x:32, y:height/2});
-  
+  obstacles = new Array();
 }
 
 function DistFrom(originX, originY, targetX, targetY)
@@ -154,6 +154,7 @@ function UpdateElements()
     player.Thrust();
   player.Update();
   
+  //collisions ici.
   if(player.y < 0)
   {
     player.y = 0;
@@ -286,5 +287,5 @@ var GameLoop = function()
   gLoop = setTimeout(GameLoop, 1000 / 50);  
 }
 InitElts();
-setTimeout(StopIntro, 5000);
+
 GameLoop();
