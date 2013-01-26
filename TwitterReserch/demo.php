@@ -61,7 +61,7 @@
                     $connection = new TwitterOAuth($consumer_key, $consumer_secret, $oauth_token, $oauth_token_secret);
 
                     //4 - Start Querying
-                    $query = 'http://search.twitter.com/search.json?q='.urlencode('#alex');
+                    $query = 'https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=NOE_interactive&count=1';
 
                     $content = $connection->get($query);
 

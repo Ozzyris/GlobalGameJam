@@ -19,6 +19,7 @@
       var g_varianceBetweenTwoPathPoints = 5;
       var g_heightPath = 400;
       var g_minMarginPath = 20;
+      var g_score = 0;
       
       var g_xPathIncrement = 15; // Pixels entre chaque point définissant le chemin de la veine.
 
@@ -272,6 +273,10 @@ function Fail(){
       g_generalSpeed=0;
 }
 
+function Score(){
+  alert("biatch");
+}
+
 function UpdateElements()
 {
   if(isMouseDown)
@@ -341,7 +346,7 @@ function UpdateElements()
   }
 
   //Gestion des collision des Globules Blanc
-  for(var i = 0; i<obstacles.length; i++)
+  /*for(var i = 0; i<obstacles.length; i++)
   {
     var isCollide = false;
     isCollide |= DistFrom(player.x, player.y, obstacles[i].x, obstacles[i].y) < obstacles[i].width;
@@ -354,13 +359,9 @@ function UpdateElements()
       
     if(obstacles[i].x - obstacles[i].width > player.x + player.width)
       break;
-    
-  }
+  }*/
 
-  
-  //$("#debug").val(i) ;
-  //alert(obstacles.length);
-
+  g_score -= g_generalSpeed;
 }
 
 function DrawAll()
@@ -403,6 +404,14 @@ function DrawAll()
   ctx.fillStyle = "rgba(0,128,0, 0.5)";
   
 //  ctx.fillRect(player.x, player.y, player.width, player.height);
+
+  //Score
+  ctx.fillStyle = "#FFF";
+  ctx.textAlign = "Right";
+  ctx.font="30px Arial";
+  ctx.fillText("Score :", width-150, 50);
+  ctx.fillText(g_score, width-50, 50);
+
 
   //ctx.fillRect(ennemis.x, ennemis.y, ennemis.width, ennemis.height);
 /* var i=0;
