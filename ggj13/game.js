@@ -35,6 +35,9 @@
       //INIT
       //states : 0 intro, 1 play
       var currentState = 0;
+      var canDie;
+      var virusAbsoluteX;
+      var xWhenGameStarts;
       
       var ballRunning = false;
     //and two-dimensional graphic context of the
@@ -44,8 +47,10 @@
     c.width = width;
     c.height = height;
     //setting canvas size
-var tutoImg = new Image();
-tutoImg.src = "img/tuto.png";
+var virusImg = new Image();
+virusImg.src = "img/virus.svg";
+var globuleImg = new Image();
+globuleImg.src = "img/globule.svg";
 
 function virusClass(options)
 {
@@ -89,9 +94,13 @@ function globuleClass(options)
   this.width = 32;
 }
 
-function AjoutGlobule(){
-  //obstacles = new Array();
-  obstacles.push(new globuleClass({x:1050, y:Math.round((Math.random()*1200)/2)}));
+function AjoutGlobule(xGlobule){
+  var middleY = GetPathY(xGlobule);
+  var topY = middleY - g_heightPath/2 - 32;
+  var bottomY = middleY + g_heightPath/2 + 32;
+  var resultY = Math.random() * (bottomY - topY);
+  resultY += topY;
+  obstacles.push(new globuleClass({x:xGlobule, y:resultY}));
 }
 
 var minPathY = g_heightPath /2 + g_minMarginPath;
@@ -127,6 +136,9 @@ function pathClass()
     while(this.elements[0].x < -g_xPathIncrement)
     {
       this.elements.shift();
+    }
+    while(this.elements[this.elements.length-1].x < width * 1.5)
+    {
       this.GenerateNewPoint(this.elements[this.elements.length-1].x + g_xPathIncrement);
     }
   }
@@ -161,11 +173,17 @@ function InitElts()
   bgPath = new pathClass();
   bgPath.elements.push(new pointClass({x: 0, y: height/2}));
   var xPath;
+  var currentIndex = 0;
   for(xPath = g_xPathIncrement; xPath < width + g_xPathIncrement; xPath+= g_xPathIncrement)
   {
-    bgPath.GenerateNewPoint(xPath);
+    bgPath.elements.push(new pointClass({x: xPath, y: height/2}));
   }
-  AjoutGlobule();
+  xWhenGameStarts = xPath;
+  bgPath.Update();
+  obstacles = new Array();
+  AjoutGlobule(width+g_obstacleInterval);
+  canDie = false;
+  virusAbsoluteX = 0;
 }
 
 function DistFrom(originX, originY, targetX, targetY)
@@ -260,6 +278,9 @@ function UpdateElements()
     player.Thrust();
   player.Update();
   
+  virusAbsoluteX -= GetGeneralSpeed();
+  if(!canDie && virusAbsoluteX >= xWhenGameStarts)
+    canDie = true;
   bgPath.Update();
   
   //pour les 4 coins, on teste si les 2 coins du haut sont toujours sous la droite du haut,
@@ -291,7 +312,11 @@ function UpdateElements()
   }
   
   if(isCollide)
+  {
     player.verticalVelocity = 0;
+    if(canDie)
+      Fail();
+  }
   
   //collisions ici.
   if(player.y < 0)
@@ -310,9 +335,10 @@ function UpdateElements()
   for(var i = 0; i<obstacles.length; i++){
     obstacles[i].x+=GetGeneralSpeed();
   }
-  if((width-g_obstacleInterval)>obstacles[obstacles.length-1].x){
-      obstacles.push(new globuleClass({x:1050, y:Math.round(50+((Math.random()*1000))/2)}));
-    }
+  if(width+obstacles[obstacles.length-1].width>obstacles[obstacles.length-1].x+g_obstacleInterval)
+  {
+    AjoutGlobule(obstacles[obstacles.length-1].x+g_obstacleInterval);
+  }
 
   //Gestion des collision des Globules Blanc
   for(var i = 0; i<obstacles.length; i++)
@@ -361,17 +387,22 @@ function DrawAll()
   ctx.closePath();
   
   
-  ctx.fillStyle = "#080";
-  ctx.fillRect(player.x, player.y, player.width, player.height);
 
 
-  ctx.fillStyle = "#FFF";
+  ctx.fillStyle = "rgba(255,255,255, 0.5)";
+  //ctx.drawImage(globuleImg, obstacles[0].x, obstacles[0].y);
   for(var i = 0; i<obstacles.length; i++){
-    ctx.beginPath();
+    ctx.drawImage(globuleImg, obstacles[i].x - obstacles[i].width, obstacles[i].y - obstacles[i].width);
+    /*ctx.beginPath();
     ctx.arc(obstacles[i].x, obstacles[i].y, obstacles[i].width, 0, 2*Math.PI);
     ctx.fill();
-    ctx.closePath();
+    ctx.closePath();*/
   }
+  
+  ctx.drawImage(virusImg, player.x-56, player.y-12);
+  ctx.fillStyle = "rgba(0,128,0, 0.5)";
+  
+//  ctx.fillRect(player.x, player.y, player.width, player.height);
 
   //ctx.fillRect(ennemis.x, ennemis.y, ennemis.width, ennemis.height);
 /* var i=0;
@@ -477,7 +508,7 @@ var GameLoop = function()
       UpdateElements();
       DrawAll();
   }
-  gLoop = setTimeout(GameLoop, 1000 / 50);
+  gLoop = setTimeout(GameLoop, 1000 / 30);
 }
 InitElts();
 
