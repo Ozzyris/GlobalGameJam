@@ -17,6 +17,7 @@
       var g_thrustForce = -5;
       var g_gravity = 3;
       var g_obstacleInterval = 500;
+      var g_generalSpeed = 20;
       //END
       
       //VARIABLES GAMEPLAY
@@ -80,7 +81,7 @@ function globuleClass(options)
 
 function AjoutGlobule(){
   //obstacles = new Array();
-  obstacles.push(new globuleClass({x:950, y:Math.round((Math.random()*1200)/2)}));
+  obstacles.push(new globuleClass({x:1050, y:Math.round((Math.random()*1200)/2)}));
 }
 
 var clear = function()
@@ -102,7 +103,7 @@ var clear = function()
 
 function GetGeneralSpeed()
 {
-  return 20;
+  return g_generalSpeed;
 }
 
 function InitElts()
@@ -155,6 +156,10 @@ $("#c").click(function(e)
 });
 
   
+function FAIL(){
+      g_generalSpeed=0;
+}
+
 
 function UpdateElements()
 {
@@ -175,12 +180,29 @@ function UpdateElements()
   }
 
   
+  //Animation des Globules Blancs
   for(var i = 0; i<obstacles.length; i++){
     obstacles[i].x-=GetGeneralSpeed();
   }
   if((width-g_obstacleInterval)>obstacles[obstacles.length-1].x){
-      obstacles.push(new globuleClass({x:950, y:Math.round((Math.random()*1200)/2)}));
+      obstacles.push(new globuleClass({x:1050, y:Math.round(50+((Math.random()*1000))/2)}));
     }
+
+  //Gestion des collision des Globules Blanc
+  for(var i = 0; i<obstacles.length; i++)
+    {
+    var alex = DistFrom(32, player.y, obstacles[i].x, obstacles[i].y);
+    $("#debug").val(i) ;
+      if(alex < 50)
+      {
+        FAIL();
+      }
+    }
+
+  
+  //$("#debug").val(i) ;
+  //alert(obstacles.length);
+
 }
 
 function DrawAll()
