@@ -25,6 +25,7 @@
 
       var g_obstacleInterval = 500;
       var g_generalSpeed = -20;
+      var g_triggerSound = 0;
       //END
       
       //VARIABLES GAMEPLAY
@@ -39,6 +40,8 @@
       var canDie;
       var virusAbsoluteX;
       var xWhenGameStarts;
+      var boucleLength = 30;
+      var currentBoucle;
       
       var ballRunning = false;
     //and two-dimensional graphic context of the
@@ -52,6 +55,12 @@ var virusImg = new Image();
 virusImg.src = "img/virus.svg";
 var globuleImg = new Image();
 globuleImg.src = "img/globule.svg";
+
+
+var hbSon = new Audio();
+hbSon.src = "sound/hb.ogg";
+hbSon.load();
+
 
 function virusClass(options)
 {
@@ -164,11 +173,16 @@ var clear = function()
 
 function GetGeneralSpeed()
 {
-  return g_generalSpeed;
+  var percent = currentBoucle / boucleLength;
+  percent *= 2 * Math.PI;
+  var speed = Math.sin(percent);
+  speed+=1;
+  return speed * g_generalSpeed;
 }
 
 function InitElts()
 {
+  currentBoucle = 0;
   player = new virusClass({x:32, y:height/2});
   obstacles = new Array();
   bgPath = new pathClass();
@@ -288,6 +302,16 @@ function UpdateElements()
     canDie = true;
   bgPath.Update();
   
+  currentBoucle++;
+  if(currentBoucle > boucleLength)
+    currentBoucle = 0;
+  
+  //maj son
+  if(GetGeneralSpeed() == g_triggerSound)
+  {
+    hbSon.play();
+  }
+  
   //pour les 4 coins, on teste si les 2 coins du haut sont toujours sous la droite du haut,
   //et les 2 coins du bas sont toujours au dessus de la droite du bas
   var isCollide = false;
@@ -346,7 +370,7 @@ function UpdateElements()
   }
 
   //Gestion des collision des Globules Blanc
-  /*for(var i = 0; i<obstacles.length; i++)
+  for(var i = 0; i<obstacles.length; i++)
   {
     var isCollide = false;
     isCollide |= DistFrom(player.x, player.y, obstacles[i].x, obstacles[i].y) < obstacles[i].width;
@@ -359,7 +383,7 @@ function UpdateElements()
       
     if(obstacles[i].x - obstacles[i].width > player.x + player.width)
       break;
-  }*/
+  }
 
   g_score -= g_generalSpeed;
 }
@@ -407,10 +431,10 @@ function DrawAll()
 
   //Score
   ctx.fillStyle = "#FFF";
-  ctx.textAlign = "Right";
+  ctx.textAlign = "right";
   ctx.font="30px Arial";
-  ctx.fillText("Score :", width-150, 50);
-  ctx.fillText(g_score, width-50, 50);
+  ctx.fillText("Score :" + g_score, width-50, 50);
+  //ctx.fillText(g_score, width-50, 50);
 
 
   //ctx.fillRect(ennemis.x, ennemis.y, ennemis.width, ennemis.height);
