@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+	<meta charset='UTF-8'>
+	
+	<title>blood</title>
+	
+	<link rel='stylesheet' href='css/style.css'>
+    <input type="text" id="xVal" value="3000"/>
+    <script src="/js/buzz.js"></script>
+
+</head>
+
+<body>
+    <script>
+	var bpm = 200;// $("#xVal").value();
+	var heartbeat;
+	var son = 0.1;
+	
+function myFunction(){
+	heartbeat = setTimeout(function(){
+		document.getElementById('player').play()
+		myFunction();
+	}, bpm);
+}
+
+function pause(){
+	clearTimeout(heartbeat);
+}
+
+function SpeedPlus(){
+	if (bpm>=0) {
+		bpm= bpm-200;
+	}
+	else if(bpm<0){
+		bpm=0;
+	}
+}
+
+function SpeedMoins(){
+	if (bpm>=0) {
+		bpm= bpm+200;
+	}
+	else if(bpm<0){
+		bpm=0;
+	}
+}
+
+function volume_up(){
+	if (son>=0) {
+		son= son+0.1;
+		alert(son);
+	}
+	else if(son<0){
+		son=0;
+	}
+}
+
+
+</script>   
+    <audio id="player">
+	  <source src="hb.mp3" type="audio/mpeg">
+	  <source src="hb.ogg" type="audio/ogg">
+	  <embed height="50" width="100" src="hb.mp3">
+	</audio>
+    <button onclick="myFunction()">Play</button> 
+    <button onclick="pause()">Pause</button>
+    <button onclick="SpeedPlus()">Speed+</button>
+    <button onclick="SpeedMoins()">Speed-</button> 
+    <button onclick="volume_up()">Volume</button> 
+
+</body>
+
+</html>
