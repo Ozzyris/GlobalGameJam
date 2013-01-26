@@ -26,6 +26,9 @@
       var g_obstacleInterval = 500;
       var g_generalSpeed = -20;
       var g_triggerSound = 0;
+      
+      var g_ecartGlobulesRouges = 800;
+      var g_ecartVeines = 200;
       //END
       
       //VARIABLES GAMEPLAY
@@ -34,9 +37,12 @@
       var obstacles;
       var bgPath;
       
+      var veines;
+      var globulesRouges;
       //INIT
       //states : 0 intro, 1 play
       var currentState = 0;
+      var currentFrame = 0;
       var canDie;
       var virusAbsoluteX;
       var xWhenGameStarts;
@@ -53,8 +59,16 @@
     //setting canvas size
 var virusImg = new Image();
 virusImg.src = "img/virus.svg";
+var virusdeadImg = new Image();
+virusdeadImg.src = "img/virushurt.svg";
 var globuleImg = new Image();
 globuleImg.src = "img/globule.svg";
+var globulesRougeImg = new Image();
+globulesRougeImg.src = "img/globulerouge.svg";
+var veine1Img = new Image();
+//veine1Img.src = "img/veine1.svg";
+var veine2Img = new Image();
+//veine2Img.src = "img/veine2.svg";
 
 
 var hbSon = new Audio();
@@ -109,6 +123,15 @@ function globuleClass(options)
   this.width = 32;
 }
 
+function veineClass(options)
+{
+  this.x = options.x;
+  this.y = options.y;
+  this.width = options.width;
+  this.height = options.height;
+  this.type = options.type;
+}
+
 function AjoutGlobule(xGlobule){
   var middleY = GetPathY(xGlobule);
   var topY = middleY - g_heightPath/2 + 32;
@@ -117,6 +140,25 @@ function AjoutGlobule(xGlobule){
   $("#debug").val(resultY);
   resultY += topY;
   obstacles.push(new globuleClass({x:xGlobule, y:resultY}));
+}
+
+function AjoutGlobuleRouge(xGlobule)
+{
+  var destY = Math.random() * (g_heightPath - 64); 
+  globulesRouges.push(new pointClass({x:xGlobule, y:destY}));  
+}
+
+var minVeineWidth = 48;
+var minVeineHeight = 32;
+var maxVeineWidth = 512;
+var maxVeineHeight = 256;
+function AjoutVeine(xVeine)
+{
+  var destWidth = Math.random() * (maxVeineWidth - minVeineWidth) + minVeineWidth;
+  var destHeight = Math.random() * (maxVeineHeight - minVeineHeight) + minVeineHeight;
+  var destY = Math.random() * (height-destHeight);
+  var destType = Math.round(Math.random() * 2);
+  veines.push(new veineClass({x: xVeine, y: destY, width: destWidth, height: destHeight, type: destType}));
 }
 
 var minPathY = g_heightPath /2 + g_minMarginPath;
@@ -188,7 +230,10 @@ function GetGeneralSpeed()
 
 function InitElts()
 {
+  g_generalSpeed = -20;
   currentBoucle = 0;
+  g_score = 0;
+  currentFrame = 0;
   player = new virusClass({x:32, y:height/2});
   obstacles = new Array();
   bgPath = new pathClass();
@@ -205,6 +250,14 @@ function InitElts()
   AjoutGlobule(width+g_obstacleInterval);
   canDie = false;
   virusAbsoluteX = 0;
+  globulesRouges = new Array();
+  globulesRouges.push(new pointClass({x: width, y: height/2}));
+  
+  veines = new Array();
+  for(xPath = g_ecartVeines; xPath < width + g_ecartVeines ; xPath += g_ecartVeines)
+  {
+    AjoutVeine(xPath);
+  }
 }
 
 function DistFrom(originX, originY, targetX, targetY)
@@ -296,105 +349,147 @@ function Fail(){
 
 function UpdateElements()
 {
-  if(isMouseDown)
-    player.Thrust();
-  player.Update();
-  
-  virusAbsoluteX -= GetGeneralSpeed();
-  if(!canDie && virusAbsoluteX >= xWhenGameStarts)
-    canDie = true;
-  bgPath.Update();
-  
-  currentBoucle++;
-  if(currentBoucle > boucleLength)
-    currentBoucle = 0;
-  
-  //maj son
-  if(GetGeneralSpeed() < g_triggerSound)
+  currentFrame++;
+  if(currentFrame>30)
   {
-    hbSon.play();
-  }
-  
-  //pour les 4 coins, on teste si les 2 coins du haut sont toujours sous la droite du haut,
-  //et les 2 coins du bas sont toujours au dessus de la droite du bas
-  var isCollide = false;
-  var topLeftPathY = GetTopPathY(player.x);
-  var topRightPathY = GetTopPathY(player.x + player.width);
-  var bottomLeftPathY = GetBottomPathY(player.x);
-  var bottomRightPathY = GetBottomPathY(player.x + player.width);
-  if(player.y < topLeftPathY)
-  {
-    isCollide = true;
-    player.y = topLeftPathY;
-  }
-  if(player.y < topRightPathY)
-  {
-    isCollide = true;
-    player.y = topRightPathY;
-  }
-  if(player.y + player.height > bottomLeftPathY)
-  {
-    isCollide = true;
-    player.y = bottomLeftPathY - player.height;
-  }
-  if(player.y + player.height > bottomRightPathY)
-  {
-    isCollide = true;
-    player.y = bottomRightPathY - player.height;
-  }
-  
-  if(isCollide)
-  {
-    player.verticalVelocity = 0;
-    if(canDie)
-      Fail();
-  }
-  
-  //collisions ici.
-  if(player.y < 0)
-  {
-    player.y = 0;
-    player.verticalVelocity = 0;
-  }
-  else if(player.y + player.height > height)
-  {
-    player.y = height - player.height;
-    player.verticalVelocity = 0;
-  }
-
-  
-  //Animation des Globules Blancs
-  for(var i = 0; i<obstacles.length; i++){
-    obstacles[i].x+=GetGeneralSpeed();
-  }
-  if(width+obstacles[obstacles.length-1].width>obstacles[obstacles.length-1].x+g_obstacleInterval)
-  {
-    AjoutGlobule(obstacles[obstacles.length-1].x+g_obstacleInterval);
-  }
-
-  //Gestion des collision des Globules Blanc
-  for(var i = 0; i<obstacles.length; i++)
-  {
+    if(isMouseDown)
+      player.Thrust();
+    player.Update();
+    
+    virusAbsoluteX -= GetGeneralSpeed();
+    if(!canDie && virusAbsoluteX >= xWhenGameStarts)
+      canDie = true;
+    bgPath.Update();
+    
+    currentBoucle++;
+    if(currentBoucle > boucleLength)
+      currentBoucle = 0;
+    
+    //maj son
+    if(GetGeneralSpeed() < g_triggerSound)
+    {
+      hbSon.play();
+    }
+    
+    //pour les 4 coins, on teste si les 2 coins du haut sont toujours sous la droite du haut,
+    //et les 2 coins du bas sont toujours au dessus de la droite du bas
     var isCollide = false;
-    isCollide |= DistFrom(player.x, player.y, obstacles[i].x, obstacles[i].y) < obstacles[i].width;
-    isCollide |= DistFrom(player.x+player.width, player.y, obstacles[i].x, obstacles[i].y) < obstacles[i].width;
-    isCollide |= DistFrom(player.x, player.y+player.height, obstacles[i].x, obstacles[i].y) < obstacles[i].width;
-    isCollide |= DistFrom(player.x+player.width, player.y+player.height, obstacles[i].x, obstacles[i].y) < obstacles[i].width;
+    var topLeftPathY = GetTopPathY(player.x);
+    var topRightPathY = GetTopPathY(player.x + player.width);
+    var bottomLeftPathY = GetBottomPathY(player.x);
+    var bottomRightPathY = GetBottomPathY(player.x + player.width);
+    if(player.y < topLeftPathY)
+    {
+      isCollide = true;
+      player.y = topLeftPathY;
+    }
+    if(player.y < topRightPathY)
+    {
+      isCollide = true;
+      player.y = topRightPathY;
+    }
+    if(player.y + player.height > bottomLeftPathY)
+    {
+      isCollide = true;
+      player.y = bottomLeftPathY - player.height;
+    }
+    if(player.y + player.height > bottomRightPathY)
+    {
+      isCollide = true;
+      player.y = bottomRightPathY - player.height;
+    }
     
     if(isCollide)
-      Fail();
+    {
+      player.verticalVelocity = 0;
+      if(canDie)
+        Fail();
+    }
+    
+    //collisions ici.
+    if(player.y < 0)
+    {
+      player.y = 0;
+      player.verticalVelocity = 0;
+    }
+    else if(player.y + player.height > height)
+    {
+      player.y = height - player.height;
+      player.verticalVelocity = 0;
+    }
+  
+    
+    //Animation des Globules Blancs
+    for(var i = 0; i<obstacles.length; i++){
+      obstacles[i].x+=GetGeneralSpeed();
+    }
+    if(width+obstacles[obstacles.length-1].width>obstacles[obstacles.length-1].x+g_obstacleInterval)
+    {
+      AjoutGlobule(obstacles[obstacles.length-1].x+g_obstacleInterval);
+    }
+    
+    //Animation des globules rouges
+    for(var i=0; i<globulesRouges.length; i++)
+    {
+      globulesRouges[i].x += GetGeneralSpeed() * 1.2;
+    }
+    if(globulesRouges[0].x < -128)
+      globulesRouges.shift();
       
-    if(obstacles[i].x - obstacles[i].width > player.x + player.width)
-      break;
+    if(globulesRouges[globulesRouges.length-1].x + g_ecartGlobulesRouges < width + 20)
+      AjoutGlobuleRouge(globulesRouges[globulesRouges.length-1].x + g_ecartGlobulesRouges);
+    
+    //Animation des veines
+    for(var i=0; i<veines.length; i++)
+    {
+      veines[i].x += GetGeneralSpeed() * 1.5;
+    }
+    while(veines[veines.length-1].x + g_ecartVeines < width)
+      AjoutVeine(veines[veines.length-1].x + g_ecartVeines);
+  
+    while(veines[0].x + veines[0].width < 0)
+      veines.shift();
+    
+    //Gestion des collision des Globules Blanc
+    for(var i = 0; i<obstacles.length; i++)
+    {
+      var isCollide = false;
+      isCollide |= DistFrom(player.x, player.y, obstacles[i].x, obstacles[i].y) < obstacles[i].width;
+      isCollide |= DistFrom(player.x+player.width, player.y, obstacles[i].x, obstacles[i].y) < obstacles[i].width;
+      isCollide |= DistFrom(player.x, player.y+player.height, obstacles[i].x, obstacles[i].y) < obstacles[i].width;
+      isCollide |= DistFrom(player.x+player.width, player.y+player.height, obstacles[i].x, obstacles[i].y) < obstacles[i].width;
+      
+      if(isCollide)
+        Fail();
+        
+      if(obstacles[i].x - obstacles[i].width > player.x + player.width)
+        break;
+    }
+  
+    g_score -= g_generalSpeed;
   }
-
-  g_score -= g_generalSpeed;
 }
 
 function DrawAll()
 {
+ctx.fillStyle = "rgb(184, 72, 66)";
+ctx.fillRect(0, 0, width, height);
+
+  for(var i=0; i<veines.length;i++)
+  {
+    var drawingImg = veine2Img
+    if(veines[i].type == 1)
+      drawingImg = veine1Img;
+    //ctx.drawImage(drawingImg, veines[i].x, veines[i].y, veines[i].width, veines[i].height);
+  }
+
+  for(var i=0; i<globulesRouges.length;i++)
+  {
+    ctx.drawImage(globulesRougeImg, globulesRouges[i].x, globulesRouges[i].y);    
+  }
   ctx.strokeStyle = "#FFF";
-  ctx.fillStyle = "#400";
+  ctx.fillStyle = "rgb(167, 29, 22)";
+  //ctx.fillStyle = "#400";
   ctx.beginPath();
   ctx.moveTo(bgPath.elements[0].x, bgPath.elements[0].y - g_heightPath/2);
   for(var i=1;i< bgPath.elements.length;i++)
@@ -465,8 +560,35 @@ function DrawAll()
     ctx.closePath();*/
   }
   
-  ctx.drawImage(virusImg, player.x-56, player.y-12);
+  if(player.isAlive)
+    ctx.drawImage(virusImg, player.x-56, player.y-12);
+  else ctx.drawImage(virusdeadImg, player.x-56, player.y-12);
   ctx.fillStyle = "rgba(0,128,0, 0.5)";
+  
+  
+  if(!player.isAlive)
+  {
+    ctx.fillStyle = "rgba(0,0,0, 0.5)";
+    ctx.fillRect(50, 50, width-100, height-100);
+
+
+
+
+    ctx.fillStyle = "#FFF";
+    ctx.font="50px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Game Over", width/2, height/4);
+
+    ctx.fillStyle = "#FFF";
+    ctx.font="20px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Vous avez fait " + g_score + " points", width/2, height/2);
+
+    ctx.fillStyle = "#FFF";
+    ctx.font="30px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Click to restart", width/2, 3*height/4);
+  }
   
 //  ctx.fillRect(player.x, player.y, player.width, player.height);
 
@@ -559,9 +681,22 @@ ctx.fillText("START", btnStartX + btnStartWidth/2, btnStartY + btnStartHeight/2)
 
 function DrawIntro()
 {
+  ctx.fillStyle = "rgba(0,0,0, 0.5)";
+  ctx.fillRect(50, 50, width-100, height-100);
+
   ctx.fillStyle = "#FFF";
+  ctx.font="50px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("HeartBreaker", width/2, height/4);
+
+  ctx.fillStyle = "#FFF";
+  ctx.font="30px Arial";
   ctx.textAlign = "center";
   ctx.fillText("Click to start", width/2, height/2);
+
+  ctx.drawImage(virusImg, 700, height/3);
+  ctx.drawImage(virusImg, 850, height/5);
+  ctx.drawImage(globuleImg, 56, 12);
 }
 
 var StopIntro = function()

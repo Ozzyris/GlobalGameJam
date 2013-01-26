@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1024px"
+	 height="600px" viewBox="0 0 1024 600" enable-background="new 0 0 1024 600" xml:space="preserve">
+<g id="fond">
+	<rect x="-29.834" y="19.501" fill="#D1D1D1" width="366.434" height="561.076"/>
+	<polygon fill="#D1D1D1" points="326.001,115.351 326.001,493.33 939,486 785,117 	"/>
+</g>
+<g id="paroie-veine">
+	
+		<rect x="0.416" y="100.001" transform="matrix(1 0.0021 -0.0021 1 0.6266 -1.0647)" opacity="0.4" fill="none" stroke="#1D1D31" stroke-width="1.1662" stroke-miterlimit="10" width="1021.002" height="399.999"/>
+</g>
+<g id="serienge">
+	<g>
+		
+			<rect x="285.796" y="100.748" fill="#FFFFFF" stroke="#000000" stroke-width="3.4607" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" width="512.204" height="16.851"/>
+		
+			<polygon fill="#FFFFFF" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="
+			286.796,499.344 336.498,499.344 336.067,575.951 -28.333,577.002 -29.031,13.105 -29.031,583.076 342.067,583.076 
+			342.333,499.667 339.506,499.344 952,499.344 952,482.311 286.796,482.311 		"/>
+		
+			<polygon fill="#FFFFFF" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="
+			334.431,20 334.864,100.395 341.333,98 341.067,14.105 -30.031,14.105 -29.334,20.001 		"/>
+	</g>
+	
+		<rect x="306.602" y="244.594" fill="#FFFFFF" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" width="3" height="3"/>
+</g>
+<g id="Calque_3">
+	
+		<line opacity="0.6" fill="none" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="46.5" y1="76" x2="48.5" y2="377"/>
+	
+		<line opacity="0.6" fill="none" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="97" y1="75" x2="99" y2="376"/>
+	
+		<line opacity="0.6" fill="none" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="71" y1="75.999" x2="72.612" y2="428.084"/>
+	
+		<rect x="-18.38" y="29.104" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" width="55.497" height="535.473"/>
+	
+		<line opacity="0.6" fill="none" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="122.529" y1="75.005" x2="124.529" y2="376.005"/>
+	
+		<line opacity="0.6" fill="none" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" x1="149.529" y1="75.505" x2="151.529" y2="376.505"/>
+</g>
+</svg>
