@@ -27,7 +27,7 @@
       var g_generalSpeed = -20;
       var g_triggerSound = 0;
       
-      var g_ecartGlobulesRouges = 800;
+      var g_ecartGlobulesRouges = 256;
       var g_ecartVeines = 200;
       //END
       
@@ -39,6 +39,7 @@
       
       var veines;
       var globulesRouges;
+      var seringue;
       //INIT
       //states : 0 intro, 1 play
       var currentState = 0;
@@ -64,11 +65,13 @@ virusdeadImg.src = "img/virushurt.svg";
 var globuleImg = new Image();
 globuleImg.src = "img/globule.svg";
 var globulesRougeImg = new Image();
-globulesRougeImg.src = "img/globulerouge.svg";
+globulesRougeImg.src = "img/globulerougebande2.svg";
 var veine1Img = new Image();
-//veine1Img.src = "img/veine1.svg";
+veine1Img.src = "img/veine1.svg";
 var veine2Img = new Image();
-//veine2Img.src = "img/veine2.svg";
+veine2Img.src = "img/veine2.svg";
+var seringueImg = new Image();
+seringueImg.src = "img/seringue.svg";
 
 
 var hbSon = new Audio();
@@ -127,8 +130,8 @@ function veineClass(options)
 {
   this.x = options.x;
   this.y = options.y;
-  this.width = options.width;
-  this.height = options.height;
+  this.width = 128;//options.width;
+  this.height = 64;//options.height;
   this.type = options.type;
 }
 
@@ -258,6 +261,8 @@ function InitElts()
   {
     AjoutVeine(xPath);
   }
+  
+  seringue = new pointClass({x:0, y:0});
 }
 
 function DistFrom(originX, originY, targetX, targetY)
@@ -299,6 +304,10 @@ $("#c").click(function(e)
   if(currentState == 0)
   {
     currentState = 1;
+  }
+  if(!player.isAlive)
+  {
+    Reset();
   }
 });
 
@@ -347,6 +356,12 @@ function Fail(){
   g_generalSpeed=0;
 }
 
+function Reset()
+{
+  currentState = 1;
+  InitElts();
+}
+
 function UpdateElements()
 {
   currentFrame++;
@@ -360,6 +375,8 @@ function UpdateElements()
     if(!canDie && virusAbsoluteX >= xWhenGameStarts)
       canDie = true;
     bgPath.Update();
+    
+    seringue.x +=GetGeneralSpeed();
     
     currentBoucle++;
     if(currentBoucle > boucleLength)
@@ -431,9 +448,9 @@ function UpdateElements()
     //Animation des globules rouges
     for(var i=0; i<globulesRouges.length; i++)
     {
-      globulesRouges[i].x += GetGeneralSpeed() * 1.2;
+      globulesRouges[i].x += GetGeneralSpeed() * 1.5;
     }
-    if(globulesRouges[0].x < -128)
+    if(globulesRouges[0].x < -256)
       globulesRouges.shift();
       
     if(globulesRouges[globulesRouges.length-1].x + g_ecartGlobulesRouges < width + 20)
@@ -442,7 +459,7 @@ function UpdateElements()
     //Animation des veines
     for(var i=0; i<veines.length; i++)
     {
-      veines[i].x += GetGeneralSpeed() * 1.5;
+      veines[i].x += GetGeneralSpeed() * 1.7;
     }
     while(veines[veines.length-1].x + g_ecartVeines < width)
       AjoutVeine(veines[veines.length-1].x + g_ecartVeines);
@@ -480,12 +497,13 @@ ctx.fillRect(0, 0, width, height);
     var drawingImg = veine2Img
     if(veines[i].type == 1)
       drawingImg = veine1Img;
-    //ctx.drawImage(drawingImg, veines[i].x, veines[i].y, veines[i].width, veines[i].height);
+    ctx.drawImage(drawingImg, veines[i].x, veines[i].y, veines[i].width, veines[i].height);
   }
 
   for(var i=0; i<globulesRouges.length;i++)
   {
-    ctx.drawImage(globulesRougeImg, globulesRouges[i].x, globulesRouges[i].y);    
+    ctx.drawImage(globulesRougeImg, globulesRouges[i].x, 0);    
+    //ctx.drawImage(globulesRougeImg, 0, 0, 256, 600-globulesRouges[i].y, globulesRouges[i].x, globulesRouges[i].y);
   }
   ctx.strokeStyle = "#FFF";
   ctx.fillStyle = "rgb(167, 29, 22)";
@@ -514,7 +532,6 @@ ctx.fillRect(0, 0, width, height);
   ctx.closePath();
   //ctx.stroke();
   ctx.fill();
-  
   
   ctx.strokeStyle = "#666";
   ctx.fillStyle = "#AAA";
@@ -550,6 +567,8 @@ ctx.fillRect(0, 0, width, height);
   ctx.fill();
   ctx.stroke();
   
+  ctx.drawImage(seringueImg, seringue.x, seringue.y);
+  
   ctx.fillStyle = "rgba(255,255,255, 0.5)";
   //ctx.drawImage(globuleImg, obstacles[0].x, obstacles[0].y);
   for(var i = 0; i<obstacles.length; i++){
@@ -570,9 +589,6 @@ ctx.fillRect(0, 0, width, height);
   {
     ctx.fillStyle = "rgba(0,0,0, 0.5)";
     ctx.fillRect(50, 50, width-100, height-100);
-
-
-
 
     ctx.fillStyle = "#FFF";
     ctx.font="50px Arial";
