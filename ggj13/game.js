@@ -13,10 +13,11 @@
       var topOffset = 0;
       
       //CONSTANTES
-      var g_maxVSpeed = 100;
-      var g_thrustForce = -5;
-      var g_gravity = 3;
-      var g_varianceBetweenTwoPathPoints = 5;
+      var g_maxVSpeed = conf_maxVSpeed;
+      var g_thrustForce = conf_thrustForce;
+      var g_gravity = conf_gravity;
+      var boucleLength = conf_boucleLength;
+      var g_varianceBetweenTwoPathPoints = 3;
       var g_heightPath = 400;
       var g_minMarginPath = 20;
       var g_score = 0;
@@ -24,11 +25,12 @@
       var g_xPathIncrement = 15; // Pixels entre chaque point définissant le chemin de la veine.
 
       var g_obstacleInterval = 500;
-      var g_generalSpeed = -20;
+      var g_generalSpeed = conf_generalSpeed;
       var g_triggerSound = 0;
       
       var g_ecartGlobulesRouges = 256;
       var g_ecartVeines = 200;
+	    var g_innercount = 0;
       //END
       
       //VARIABLES GAMEPLAY
@@ -47,7 +49,6 @@
       var canDie;
       var virusAbsoluteX;
       var xWhenGameStarts;
-      var boucleLength = 30;
       var currentBoucle;
       
       var ballRunning = false;
@@ -228,12 +229,12 @@ function GetGeneralSpeed()
   percent *= 2 * Math.PI;
   var speed = Math.sin(percent);
   speed+=1;
-  return speed * g_generalSpeed;
+  return speed * g_generalSpeed/2;
 }
 
 function InitElts()
 {
-  g_generalSpeed = -20;
+  g_generalSpeed = conf_generalSpeed;
   currentBoucle = 0;
   g_score = 0;
   currentFrame = 0;
